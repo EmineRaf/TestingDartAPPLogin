@@ -31,6 +31,20 @@ class _LoginScreenState extends State<LoginScreen> {
       final data = jsonDecode(response.body);
       final token = data["token"];
       print("Token reçu : $token");
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Sign in Succeed"),
+          content: const Text("Welcome Back"),
+          backgroundColor: Colors.green,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            )
+          ],
+        ),
+      );
     } else {
       print("Erreur login : ${response.body}");
       showDialog(
@@ -79,7 +93,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 10.0),
 
-                  // Email Field
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 25.0),
                     child: Container(
@@ -112,7 +125,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 10.0),
 
-                  // Password Field
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 25.0),
                     child: Container(
@@ -147,17 +159,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: const Text('Validate'),
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Validation Passed!')),
-                        );
-                        loginUser(); // Trigger login if valid
+                        loginUser();
                       }
                     },
                   ),
 
                   const SizedBox(height: 25),
 
-                  // Sign Up Row
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

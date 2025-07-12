@@ -9,9 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  google_fonts: ^6.1.0
+  google_fonts: ^6.2.1
   http: 1.4.0
   email_validator: ^2.0.1
+  flutter_screenutil: ^5.6.1
 
 
 dev_dependencies:
