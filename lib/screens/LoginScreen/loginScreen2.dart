@@ -1,6 +1,9 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:login_app/screens/HomeScreen/home_screen.dart';
 
 late bool _passwordVisible;
 
@@ -12,9 +15,63 @@ class LoginScreen2 extends StatefulWidget {
   State<LoginScreen2> createState() => _LoginScreen2State();
 }
 
+TextEditingController emailController = TextEditingController();
+TextEditingController passwordController = TextEditingController();
+
 final _formKey = GlobalKey<FormState>();
 
 class _LoginScreen2State extends State<LoginScreen2> {
+  Future<void> loginUser() async {
+    final response = await http.post(
+      Uri.parse("http://192.168.1.18:8080/api/auth/login"),
+      headers: {"Content-Type": "application/json"},
+      body: json.encode({
+        "email": emailController.text,
+        "password": passwordController.text,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final token = data["token"];
+      print("Token reçu : $token");
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Sign in Succeed"),
+          content: const Text("Welcome Back"),
+          backgroundColor: Colors.green,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            )
+          ],
+        ),
+      );
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        HomeScreen.routeName,
+        (route) => false,
+      );
+    } else {
+      print("Erreur login : ${response.body}");
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text("Erreur de connexion"),
+          content: const Text("Email ou mot de passe incorrect."),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("OK"),
+            )
+          ],
+        ),
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -27,6 +84,7 @@ class _LoginScreen2State extends State<LoginScreen2> {
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
         body: ListView(
+          physics: NeverScrollableScrollPhysics(),
           children: [
             Container(
               width: MediaQuery.of(context).size.width,
@@ -100,7 +158,13 @@ class _LoginScreen2State extends State<LoginScreen2> {
                             const SizedBox(height: 20.0),
                             buildPasswordField(),
                             const SizedBox(height: 20.0),
-                            const defaultButton(),
+                            defaultButton(
+                              onPressed: () {
+                                if (_formKey.currentState!.validate()) {
+                                  loginUser();
+                                }
+                              },
+                            ),
                             const SizedBox(height: 20.0),
                             const Align(
                               alignment: Alignment.bottomRight,
@@ -113,7 +177,7 @@ class _LoginScreen2State extends State<LoginScreen2> {
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
-                            )
+                            ),
                           ],
                         ))
                   ],
@@ -131,6 +195,7 @@ class _LoginScreen2State extends State<LoginScreen2> {
       obscureText: _passwordVisible,
       textAlign: TextAlign.start,
       keyboardType: TextInputType.visiblePassword,
+      controller: passwordController,
       style: const TextStyle(
           color: Colors.black, fontWeight: FontWeight.w300, fontSize: 17.0),
       decoration: InputDecoration(
@@ -164,6 +229,7 @@ class _LoginScreen2State extends State<LoginScreen2> {
     return TextFormField(
       textAlign: TextAlign.start,
       keyboardType: TextInputType.emailAddress,
+      controller: emailController,
       style: const TextStyle(
           color: Colors.black, fontWeight: FontWeight.w300, fontSize: 18.0),
       decoration: const InputDecoration(
@@ -184,16 +250,14 @@ class _LoginScreen2State extends State<LoginScreen2> {
 }
 
 class defaultButton extends StatelessWidget {
-  const defaultButton({
-    super.key,
-  });
+  final VoidCallback onPressed;
+
+  const defaultButton({super.key, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {
-        if (_formKey.currentState!.validate()) {}
-      },
+      onTap: onPressed,
       child: Container(
         margin: const EdgeInsets.only(left: 20.0, right: 20.0),
         padding: const EdgeInsets.only(right: 20.0),
